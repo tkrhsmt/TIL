@@ -109,7 +109,7 @@ macにはデフォルトでpython環境が入っていますが，最新では�
 2. pythonの場所を調べて，コピーしておく
 
 ```zsh
-    which python
+    which python3
 ```
 
 3. juliaのRPEL環境に入る
