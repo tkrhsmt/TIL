@@ -187,6 +187,43 @@ shift + F
   - `duz1` : $ \nu\frac{\partial^2w}{\partial x_jx_j} - u_j\frac{\partial w}{\partial x_j} $
 - `momentum_forcing(dux1, duy1, duz1, rho1, ux1, uy1, uz1, phi1)` : 外力項
 
+## 微分操作について
+
+6次精度compact差分を使用している．
+
+### 周期境界のとき
+
+$$
+  \alpha\frac{\partial f_{i-1}}{\partial x} + \frac{\partial f_i}{\partial x} + \alpha \frac{\partial f_{i+1}}{\partial x} = a \frac{f_{i+1} - f_{i-1}}{2\Delta x} + b \frac{f_{i+2} - f_{i-2}}{4\Delta x}
+$$
+
+6次精度compact差分のとき
+- $\alpha = \frac{1}{3}$
+- $a = \frac{14}{9}$
+- $b = \frac{1}{9}$
+
+境界部も同様の式を用いることができる．（$i=1$のときは，$i-1$に$n$を入れる）
+
+### 壁境界のとき
+
+境界部以外は上記と同じ式が用いれる．
+境界最外層部では
+$$
+  \frac{\partial f_{1}}{\partial x} + 2\frac{\partial f_2}{\partial x} = \frac{-5 f_1 + 4 f_2 + f_3}{2\Delta x}
+$$
+$$
+  \frac{\partial f_{n}}{\partial x} + 2\frac{\partial f_{n-1}}{\partial x} = \frac{5 f_n - 4 f_{n-1} - f_{n-2}}{2\Delta x}
+$$
+を用いる．
+もう一つ内側では，もう少し精度よく
+$$
+  \frac{1}{4}\frac{\partial f_{1}}{\partial x} + \frac{\partial f_{2}}{\partial x} + \frac{1}{4}\frac{\partial f_{3}}{\partial x} = \frac{3}{2}\frac{f_3 - f_1}{2\Delta x}
+$$
+$$
+  \frac{1}{4}\frac{\partial f_{n-2}}{\partial x} + \frac{\partial f_{n-1}}{\partial x} + \frac{1}{4}\frac{\partial f_{n}}{\partial x} = \frac{3}{2}\frac{f_n - f_{n-1}}{2\Delta x}
+$$
+を用いる．
+
 ## ファイル中身について
 
 それぞれ`.f90`で記述されているファイルについて，以下の内容が書かれているようです．
