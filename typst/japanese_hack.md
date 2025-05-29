@@ -3,6 +3,8 @@
 
 ## typst内での改行
 
+### `regex`を使う方法
+
 ```typst
 #let cjkre = regex("([\u3000-\u303F\u3040-\u30FF\u31F0-\u31FF\u3200-\u9FFF\uFF00-\uFFEF][　！”＃＄％＆’（）*+，−．／：；＜＝＞？＠［＼］＾＿｀｛｜｝〜、。￥・]*)[ ]+([\u3000-\u303F\u3040-\u30FF\u31F0-\u31FF\u3200-\u9FFF\uFF00-\uFFEF])[ ]*")
 #show cjkre: it => it.text.match(cjkre).captures.sum()
@@ -25,6 +27,14 @@ World
 導入前：    こんにちは 世界 Hello World
 導入後：    こんにちは世界 Hello World
 ```
+
+### パッケージを使う方法
+
+```typst
+#import "@preview/cjk-unbreak:0.1.0": remove-cjk-break-space
+#show: remove-cjk-break-space
+```
+
 
 ---
 
@@ -60,3 +70,74 @@ World
 - LaTeXにおける`\noindent`と同等の役割を果たす
 
 ---
+
+## 数式の空きの問題
+
+```typst
+#import "@preview/cjk-unbreak:0.1.0": *
+#import "@preview/touying:0.6.1": utils
+
+#let cn-char = "\p{Han}；：！？…—"
+#let jp-char = "\p{Hiragana}\p{Katakana}"
+#let cjk-char-regex = regex("[" + cn-char + jp-char + "]")
+
+#let ends-with-cjk(it) = (
+  it != none
+    and (
+      (it.has("text") and it.text.ends-with(cjk-char-regex)) or (it.has("body") and ends-with-cjk(it.body))
+    )
+)
+
+#let start-with-cjk(it) = (
+  it != none
+    and (
+      (it.has("text") and it.text.starts-with(cjk-char-regex)) or (it.has("body") and start-with-cjk(it.body))
+    )
+)
+
+#let is-text(it) = (
+  it != none and it.func() == text
+)
+
+#let insert-cjk-math-space(rest) = {
+  rest = transform-childs(rest, insert-cjk-math-space)
+  if utils.is-sequence(rest) {
+    let first = none
+    for mid in rest.children {
+      // first, mid, third
+      if mid.func() == math.equation and is-text(first) and (ends-with-cjk(first)) {
+        first
+        h(0.25em, weak: true)
+
+      }
+      else if (first != none and first.func() == math.equation) and is-text(mid) and (start-with-cjk(mid)) {
+        first
+        h(0.25em, weak: true)
+      }
+      else{
+        first
+      }
+      first = mid
+    }
+    first
+  } else {
+    rest
+  }
+}
+```
+
+- [Qiitaの記事](https://qiita.com/zr_tex8r/items/a9d82669881d8442b574)の方法ではAdobe Blankを導入する必要があった
+- `cjk-unbreak`パッケージの`transform-childs`関数を利用
+
+例
+
+```typst
+#show: insert-cjk-math-space
+
+お客様の中に$T_y (p_s dot tau)$芸人はおられませんか．これは
+
+// 四分空きが入らないパターンも試してみる
+アレ（$T_y (p_s dot tau)$）、つまり$T_y (p_s dot tau)$。
+```
+
+[Qiitaの記事](https://qiita.com/zr_tex8r/items/a9d82669881d8442b574)の例文でうまくいく．
